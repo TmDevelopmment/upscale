@@ -21,18 +21,29 @@ public class CustomerController {
 //        System.out.println(dto.getAddress());
         customerService.create(dto);
         return new ResponseEntity<>(
-            new StandedResponse(
-                201,
-                "Customer created successfully",
-                null
-            ),
-            HttpStatus.CREATED
+                new StandedResponse(
+                        200,
+                        "Customer created successfully",
+                        null
+                ),
+                HttpStatus.CREATED
         );
     }
 
-    @PutMapping("/update")
-    public String update(@RequestBody RequestCustomerDto dto) {
-        return "customer update";
+    @PutMapping("/{id}")
+    public ResponseEntity<StandedResponse> update(
+            @PathVariable String id,
+            @RequestBody RequestCustomerDto dto
+    ) {
+        customerService.update(dto, id);
+        return new ResponseEntity<>(
+                new StandedResponse(
+                        201,
+                        "Customer updated successfully",
+                        null
+                ),
+                HttpStatus.CREATED
+        );
     }
 
     @GetMapping("/list")
@@ -43,9 +54,17 @@ public class CustomerController {
     ) {
         return "customer findAll";
     }
+
     @GetMapping("/{id}")
-    public String getById(@PathVariable String id) {
-        return "customer getById";
+    public ResponseEntity<StandedResponse> getById(@PathVariable String id) {
+        return new ResponseEntity<>(
+                new StandedResponse(
+                        201,
+                        "Customer found successfully",
+                        customerService.findById(id)
+                ),
+                HttpStatus.OK
+        );
     }
 
     @DeleteMapping("/{id}")
