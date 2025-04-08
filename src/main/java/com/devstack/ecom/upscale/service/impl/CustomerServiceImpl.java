@@ -2,10 +2,13 @@ package com.devstack.ecom.upscale.service.impl;
 
 import com.devstack.ecom.upscale.dto.request.RequestCustomerDto;
 import com.devstack.ecom.upscale.dto.response.ResponseCustomerDto;
+import com.devstack.ecom.upscale.dto.response.pagination.CustomerPaginateDto;
 import com.devstack.ecom.upscale.entity.Customer;
+import com.devstack.ecom.upscale.exception.EntryNotFoundException;
 import com.devstack.ecom.upscale.repo.CustomerRepo;
 import com.devstack.ecom.upscale.service.CustomerService;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.PageRequest;
 import org.springframework.stereotype.Service;
 
 import java.util.Optional;
@@ -36,7 +39,7 @@ public class CustomerServiceImpl implements CustomerService {
     public ResponseCustomerDto findById(String id) {
         Optional<Customer> selectedCustomer = customerRepo.findById(id);
         if (selectedCustomer.isEmpty()) {
-            throw new RuntimeException("Customer not found");
+            throw new EntryNotFoundException("Customer not found");
         }
         Customer customer = selectedCustomer.get();
         return toResponseCustomerDto(customer);
@@ -47,7 +50,7 @@ public class CustomerServiceImpl implements CustomerService {
     public void update(RequestCustomerDto dto, String id) {
         Optional<Customer> selectedCustomer = customerRepo.findById(id);
         if (selectedCustomer.isEmpty()) {
-            throw new RuntimeException("Customer not found");
+            throw new EntryNotFoundException("Customer not found");
         }
         Customer customer = selectedCustomer.get();
         customer.setName(dto.getName());
@@ -57,6 +60,21 @@ public class CustomerServiceImpl implements CustomerService {
         customer.setActive(dto.isActive());
         customerRepo.save(customer);
         // Save the updated entity to the database
+    }
+
+    @Override
+    public CustomerPaginateDto findAll(String searchText, int page, int size) {
+
+        return CustomerPaginateDto.builder()
+                .dataList(customerRepo.findAllWithSearchText(searchText, PageRequest.of(page, size))
+                        .stream().map(this::toResponseCustomerDto).toList())
+                .count(customerRepo.countAllWithSearchText(searchText))
+                .build();
+    }
+
+    @Override
+    public void delete(String id) {
+        customerRepo.deleteById(id);
     }
 
     private ResponseCustomerDto toResponseCustomerDto(Customer customer) {
